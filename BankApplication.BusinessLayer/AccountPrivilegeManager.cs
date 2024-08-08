@@ -1,4 +1,7 @@
-﻿namespace ConsoleApp5
+﻿using BankApplication.DataAccess;
+
+using BankApplication.Common;
+namespace BankApplication.BusinessLayer
 {
     public static class AccountPrivilegeManager
     {

@@ -1,6 +1,9 @@
-﻿namespace ConsoleApp5
+﻿using BankApplication.BusinessLayer;
+using BankApplication.Common;
+//using BankApplication.DataAccess;
+namespace ConsoleApp5
 {
-    internal class Program
+    public class Program
     {
         private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
         static void Main()
@@ -45,6 +48,7 @@
                         try
                         {
                             IAccount newAccount = accountManager.CreateAccount(name, pin, balance, privilegeType, accType);
+
                             Console.WriteLine("----------------------------------------------------------------------------------");
                             Console.WriteLine($"Account created successfully! Account Number: {newAccount.AccNo}");
                             Console.WriteLine("----------------------------------------------------------------------------------");

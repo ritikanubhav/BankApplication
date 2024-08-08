@@ -5,8 +5,10 @@ using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
+using BankApplication.DataAccess;
 
-namespace ConsoleApp5
+using BankApplication.Common;
+namespace BankApplication.BusinessLayer
 {
     public class AccountManager
     {
@@ -31,6 +33,10 @@ namespace ConsoleApp5
                 throw new MinBalanceNeedsToBeMaintainedException("Minimum balance needs to be maintained.");
             }
             account.Policy = policy;
+
+            //sending account data to accounts table in our database
+            BankApplicationDbRepository repo = new BankApplicationDbRepository();
+            repo.Create(account);
             return account;
         }
 

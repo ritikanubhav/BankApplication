@@ -1,4 +1,4 @@
-﻿namespace ConsoleApp5
+﻿namespace BankApplication.Common
 {
     public enum TransactionTypes
     {

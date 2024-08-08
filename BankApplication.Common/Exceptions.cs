@@ -36,35 +36,35 @@ public class InvalidAccountTypeException : ApplicationException
 {
     public InvalidAccountTypeException(string message) : base(message) { }
 }
-public class DailyLimitExceededException : Exception
+public class DailyLimitExceededException : ApplicationException
 {
     public DailyLimitExceededException() : base("Daily limit exceeded.") { }
 }
 
-public class InvalidPrivilegeTypeException : Exception
+public class InvalidPrivilegeTypeException : ApplicationException
 {
     public InvalidPrivilegeTypeException() : base("Invalid privilege type provided.") { }
 }
-public class TransactionNotFoundException : Exception
+public class TransactionNotFoundException : ApplicationException
 {
     public TransactionNotFoundException() : base("Transaction not found.") { }
 }
 
-public class InvalidTransactionTypeException : Exception
+public class InvalidTransactionTypeException : ApplicationException
 {
     public InvalidTransactionTypeException() : base("Invalid transaction type provided.") { }
 }
-public class InvalidPolicyTypeException : Exception
+public class InvalidPolicyTypeException : ApplicationException
 {
     public InvalidPolicyTypeException() : base("Invalid policy type.") { }
 }
 
-public class UnableToOpenAccountException : Exception
+public class UnableToOpenAccountException : ApplicationException
 {
     public UnableToOpenAccountException(string message) : base(message) { }
 }
 
-public class MinBalanceNeedsToBeMaintainedException : Exception
+public class MinBalanceNeedsToBeMaintainedException : ApplicationException
 {
     public MinBalanceNeedsToBeMaintainedException(string message) : base(message) { }
 }

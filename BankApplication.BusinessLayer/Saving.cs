@@ -1,17 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
+using BankApplication.DataAccess;
 
-namespace ConsoleApp5
+using BankApplication.Common;
+namespace BankApplication.BusinessLayer
 {
-    internal class Current : Account
+    public class Saving:Account
     {
-        public Current() {
+        public Saving()
+        {
         }
-        public Current(string name, string pin, PrivilegeType privilegeType, double Balance):this()
+        public Saving(string name, string pin, PrivilegeType privilegeType, double Balance) : this()
         {
             this.Name = name;
             this.Pin = pin;
@@ -20,8 +22,7 @@ namespace ConsoleApp5
         }
         public override string GetAccType()
         {
-            return "CURRENT";
+            return "SAVINGS";
         }
-
     }
 }

@@ -1,6 +1,8 @@
 ﻿using System.Transactions;
+using BankApplication.DataAccess;
 
-namespace ConsoleApp5
+using BankApplication.Common;
+namespace BankApplication.BusinessLayer
 {
     public class ExternalTransfer : Transaction
     {

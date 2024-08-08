@@ -4,10 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualBasic;
-
-namespace ConsoleApp5
+using BankApplication.Common;
+using BankApplication.DataAccess;
+namespace BankApplication.BusinessLayer
 {
-    internal class AccountFactory
+    public class AccountFactory
     {
         public static IAccount CreateAccount(string name, string pin, double balance, PrivilegeType privilegeType, AccountType accType)
         {
@@ -24,6 +25,7 @@ namespace ConsoleApp5
                     throw new InvalidAccountTypeException("Invalid account type.");
             }
             account.Open();
+
             return account;
         }
     }

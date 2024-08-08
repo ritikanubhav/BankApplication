@@ -1,4 +1,4 @@
-﻿namespace ConsoleApp5
+﻿namespace BankApplication.Common
 {
     // Enum for PrivilegeType
     public enum PrivilegeType

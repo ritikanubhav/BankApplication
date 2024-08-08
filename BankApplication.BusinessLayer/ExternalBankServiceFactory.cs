@@ -1,4 +1,5 @@
-﻿namespace ConsoleApp5
+﻿using BankApplication.Common;
+namespace BankApplication.BusinessLayer
 {
     public class ExternalBankServiceFactory
     {

@@ -1,6 +1,7 @@
 ﻿using System.Transactions;
 
-namespace ConsoleApp5
+using BankApplication.Common;
+namespace BankApplication.BusinessLayer
 {
     public static class TransactionLog
     {

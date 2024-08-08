@@ -1,30 +1,30 @@
-using ConsoleApp5;
-
+using BankApplication.BusinessLayer;
+using BankApplication.Common;
 namespace BankingApplication.Business.UnitTest
 {
     [TestClass]
     public class AccountManagerTests
     {
-        public AccountManager _accountManager;
+        public AccountManager accountManager;
 
         [TestInitialize]
         public void Setup()
         {
-            _accountManager = new AccountManager();
+            accountManager = new AccountManager();
         }
 
         [TestMethod]
         public void CreateAccount_ShouldCreateSavingsAccount()
         {
             // Arrange
-            string name = "John Doe";
+            string name = "John";
             string pin = "1234";
             double balance = 6000.0;
             PrivilegeType privilegeType = PrivilegeType.REGULAR;
             AccountType accType = AccountType.SAVINGS;
 
             // Act
-            IAccount account = _accountManager.CreateAccount(name, pin, balance, privilegeType, accType);
+            IAccount account = accountManager.CreateAccount(name, pin, balance, privilegeType, accType);
 
             // Assert
             Assert.IsNotNull(account);
@@ -41,14 +41,14 @@ namespace BankingApplication.Business.UnitTest
         public void CreateAccount_ShouldThrowMinBalanceNeedsToBeMaintainedException()
         {
             // Arrange
-            string name = "Jane Doe";
+            string name = "Jane";
             string pin = "5678";
             double balance = 4000.0; // Less than minimum balance for REGULAR savings account
             PrivilegeType privilegeType = PrivilegeType.REGULAR;
             AccountType accType = AccountType.SAVINGS;
 
             // Act
-            _accountManager.CreateAccount(name, pin, balance, privilegeType, accType);
+            accountManager.CreateAccount(name, pin, balance, privilegeType, accType);
         }
 
         [TestMethod]
@@ -56,14 +56,14 @@ namespace BankingApplication.Business.UnitTest
         public void CreateAccount_ShouldThrowInvalidAccountTypeException()
         {
             // Arrange
-            string name = "Jane Doe";
+            string name = "Jan";
             string pin = "5678";
             double balance = 10000.0;
             PrivilegeType privilegeType = PrivilegeType.REGULAR;
             AccountType accType = (AccountType)999; // Invalid account type
 
             // Act
-            _accountManager.CreateAccount(name, pin, balance, privilegeType, accType);
+            accountManager.CreateAccount(name, pin, balance, privilegeType, accType);
         }
     }
 }

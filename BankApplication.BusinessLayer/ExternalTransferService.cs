@@ -1,5 +1,4 @@
-﻿using ConsoleApp5;
-
+﻿
 public class ExternalTransferService
 {
     private Thread thread;

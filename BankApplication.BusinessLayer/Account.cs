@@ -4,10 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
-
-namespace ConsoleApp5
+using BankApplication.DataAccess;
+using BankApplication.Common;
+namespace BankApplication.BusinessLayer
 {
-    internal abstract class Account:IAccount
+    public abstract class Account:IAccount
     {
         protected string accNo;
         protected string name;
