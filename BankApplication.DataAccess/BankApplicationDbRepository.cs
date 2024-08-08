@@ -53,46 +53,24 @@ namespace BankApplication.DataAccess
         //{
 
         //}
-        public void Update(IAccount account)
+        public void Update(string accountNo,double newBalance)
         {
-            string dbProvider = ConfigurationManager.ConnectionStrings["default"].ProviderName;
+            SqlConnection conn = new SqlConnection();
 
-            DbProviderFactories.RegisterFactory(dbProvider, SqlClientFactory.Instance);
-            DbProviderFactory factory = DbProviderFactories.GetFactory(dbProvider);
-
-            IDbConnection conn = factory.CreateConnection();
             string conStr = ConfigurationManager.ConnectionStrings["default"].ConnectionString;
             conn.ConnectionString = conStr;
 
-            string sqlUpdate = $"update contacts set ";
 
-            IDbCommand cmd = conn.CreateCommand();
+            string sqlUpdate = $"update accounts set Balance=@balance where AccNo=@accNo";
 
-            IDbDataParameter p1 = cmd.CreateParameter();
-            p1.ParameterName = "@name";
-            p1.Value = account.Name;
+            SqlCommand cmd = new SqlCommand();
+            SqlParameter p1 = new SqlParameter();
+
+            p1.ParameterName = "@balance";
+            p1.Value = newBalance;
             cmd.Parameters.Add(p1);
-
-            IDbDataParameter p2 = cmd.CreateParameter();
-            p1.ParameterName = "@mobile";
-            p1.Value = account.Mobile;
-            cmd.Parameters.Add(p2);
-
-            IDbDataParameter p3 = cmd.CreateParameter();
-            p1.ParameterName = "@email";
-            p1.Value = c.Email;
-            cmd.Parameters.Add(p3);
-
-            IDbDataParameter p4 = cmd.CreateParameter();
-            p1.ParameterName = "@location";
-            p1.Value = c.Location;
-            cmd.Parameters.Add(p4);
-
-            IDbDataParameter p5 = cmd.CreateParameter();
-            p1.ParameterName = "@location";
-            p1.Value = c.Id;
-            cmd.Parameters.Add(p5);
-
+            cmd.Parameters.AddWithValue("@accNo", accountNo);
+            
             cmd.CommandText = sqlUpdate;
             cmd.Connection = conn;
             try

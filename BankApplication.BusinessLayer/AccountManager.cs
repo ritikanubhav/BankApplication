@@ -12,6 +12,7 @@ namespace BankApplication.BusinessLayer
 {
     public class AccountManager
     {
+        BankApplicationDbRepository repo = new BankApplicationDbRepository();
         public IAccount CreateAccount(string name, string pin, double balance, PrivilegeType privilegeType, AccountType accType)
         {
             IAccount account =AccountFactory.CreateAccount(name, pin, balance, privilegeType, accType);
@@ -35,8 +36,8 @@ namespace BankApplication.BusinessLayer
             account.Policy = policy;
 
             //sending account data to accounts table in our database
-            BankApplicationDbRepository repo = new BankApplicationDbRepository();
             repo.Create(account);
+
             return account;
         }
 
@@ -64,6 +65,9 @@ namespace BankApplication.BusinessLayer
 
             fromAccount.Balance -= amount;
 
+            //Updating account  balance data to accounts table in our database
+            repo.Update(fromAccount.AccNo,fromAccount.Balance);
+
             TransactionLog.LogTransaction(fromAccount.AccNo, TransactionTypes.WITHDRAW, new Transaction(fromAccount, amount));
 
             return true;
@@ -90,7 +94,10 @@ namespace BankApplication.BusinessLayer
             toAccount.Balance += amount;
 
             TransactionLog.LogTransaction(toAccount.AccNo, TransactionTypes.DEPOSIT, new Transaction(toAccount, amount));
-            
+
+            //Updating account  balance data to accounts table in our database
+            repo.Update(toAccount.AccNo, toAccount.Balance);
+
             return true;
         }
 
@@ -143,6 +150,9 @@ namespace BankApplication.BusinessLayer
             withdrawTransaction.Status = TransactionStatus.CLOSE;
             depositTransaction.Status = TransactionStatus.CLOSE;
 
+            //Updating account  balance data to accounts table in our database after transfer
+            repo.Update(transfer.ToAccount.AccNo, transfer.ToAccount.Balance);
+            repo.Update(transfer.FromAccount.AccNo, transfer.FromAccount.Balance);
             return true;
         }
 
@@ -172,6 +182,10 @@ namespace BankApplication.BusinessLayer
             // Assuming success in external transfer, log transaction and update status
             TransactionLog.LogTransaction(externalTransfer.FromAccount.AccNo, TransactionTypes.EXTERNALTRANSFER, externalTransfer);
             externalTransfer.Status = TransactionStatus.OPEN;
+
+            //Updating account  balance data to accounts table in our database after transfer
+            repo.Update(externalTransfer.FromAccount.AccNo, externalTransfer.FromAccount.Balance);
+
             return true;
         }
     }
