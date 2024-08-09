@@ -5,8 +5,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
-using BankApplication.Common;
-namespace BankApplication.BusinessLayer
+namespace BankApplication.Common
 {
     public  class IDGenerator
     {

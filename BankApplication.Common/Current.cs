@@ -5,10 +5,7 @@ using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 
-using BankApplication.DataAccess;
-
-using BankApplication.Common;
-namespace BankApplication.BusinessLayer
+namespace BankApplication.Common
 {
     public class Current : Account
     {

@@ -83,32 +83,28 @@ namespace ConsoleApp5
                         string accNo = Console.ReadLine().ToUpper();
                         Console.Write("Enter Amount to Deposit: ");
                         double depositAmount = double.Parse(Console.ReadLine());
-                        IAccount depositAccount = (accNo == account1?.AccNo) ? account1 : (accNo == account2?.AccNo) ? account2 : null;
-
-                        if (depositAccount != null)
+                        try
                         {
-                            try
+                            bool isDepositSuccess=accountManager.Deposit(accNo, depositAmount);
+                            if (isDepositSuccess)
                             {
-                                accountManager.Deposit(depositAccount, depositAmount);
                                 Console.WriteLine("----------------------------------------------------------------------------------");
                                 Console.WriteLine("Deposit successful!");
-                                Console.WriteLine($"New Balance: {depositAccount.Balance}");
                                 Console.WriteLine("----------------------------------------------------------------------------------");
-
                             }
-                            catch (Exception ex)
+                            else
                             {
                                 Console.WriteLine("----------------------------------------------------------------------------------");
-                                Console.WriteLine($"Error: {ex.Message}");
+                                Console.WriteLine("Error in depositing.");
                                 Console.WriteLine("----------------------------------------------------------------------------------");
-                                logger.Error(ex, "Error during Deposit");
                             }
                         }
-                        else
+                        catch (Exception ex)
                         {
                             Console.WriteLine("----------------------------------------------------------------------------------");
-                            Console.WriteLine("Account not found.");
+                            Console.WriteLine($"Error: {ex.Message}");
                             Console.WriteLine("----------------------------------------------------------------------------------");
+                            logger.Error(ex, "Error during Deposit");
                         }
                         break;
 

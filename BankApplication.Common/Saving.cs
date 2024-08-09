@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using BankApplication.DataAccess;
 
-using BankApplication.Common;
-namespace BankApplication.BusinessLayer
+namespace BankApplication.Common
 {
     public class Saving:Account
     {

@@ -4,9 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
-using BankApplication.DataAccess;
 using BankApplication.Common;
-namespace BankApplication.BusinessLayer
+namespace BankApplication.Common
 {
     public abstract class Account:IAccount
     {

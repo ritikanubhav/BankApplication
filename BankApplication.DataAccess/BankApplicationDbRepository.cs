@@ -49,10 +49,58 @@ namespace BankApplication.DataAccess
                 connection.Close();//close connection as soon as possible
             }
         }
-        //public IAccount GetAccountByAccNo(string accountNo)
-        //{
+        public IAccount GetAccountByAccNo(string accountNo)
+        {
+            IAccount account=null;
 
-        //}
+            SqlConnection conn = new SqlConnection();
+
+            string conStr = ConfigurationManager.ConnectionStrings["default"].ConnectionString;
+            conn.ConnectionString = conStr;
+
+
+            string sqlSelect = $"select * from accounts where AccNo=@accNo";
+
+            SqlCommand cmd = new SqlCommand();
+
+            cmd.Parameters.AddWithValue("@accNo", accountNo);
+
+            cmd.CommandText = sqlSelect;
+            cmd.Connection = conn;
+            try
+            {
+                conn.Open();
+                SqlDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    Console.WriteLine(reader[0].ToString());
+                    if (reader["accType"].ToString() == "SAVINGS")
+                        account = new Saving();
+                    else
+                        account = new Current();
+                    account.AccNo = reader[0].ToString();
+                    account.Name = reader[1].ToString();
+                    account.Pin= reader[2].ToString();
+                    account.Active= Convert.ToBoolean(reader[3]);
+                    account.DateOfOpening=Convert.ToDateTime(reader[4]);
+                    account.Balance = (double)reader[5];
+                    account.PrivilegeType= Enum.Parse<PrivilegeType>(reader[6].ToString());
+
+                }
+                return account;
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return null;
+            }
+            finally
+            {
+                conn.Close();
+            }
+            
+        }
         public void Update(string accountNo,double newBalance)
         {
             SqlConnection conn = new SqlConnection();

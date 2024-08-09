@@ -1,7 +1,5 @@
-﻿using BankApplication.DataAccess;
-
-using BankApplication.Common;
-namespace BankApplication.BusinessLayer
+﻿
+namespace BankApplication.Common
 {
     public class Transaction
     {

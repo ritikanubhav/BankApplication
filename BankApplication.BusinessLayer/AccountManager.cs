@@ -4,7 +4,6 @@ using System.Linq;
 using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
-using System.Transactions;
 using BankApplication.DataAccess;
 
 using BankApplication.Common;
@@ -13,6 +12,7 @@ namespace BankApplication.BusinessLayer
     public class AccountManager
     {
         BankApplicationDbRepository repo = new BankApplicationDbRepository();
+
         public IAccount CreateAccount(string name, string pin, double balance, PrivilegeType privilegeType, AccountType accType)
         {
             IAccount account =AccountFactory.CreateAccount(name, pin, balance, privilegeType, accType);
@@ -74,8 +74,10 @@ namespace BankApplication.BusinessLayer
         }
 
         
-        public bool Deposit(IAccount toAccount, double amount)
+        public bool Deposit(string  AccNo, double amount)
         {
+            IAccount toAccount=repo.GetAccountByAccNo(AccNo);
+
             if (toAccount == null)
             {
                 throw new AccountDoesNotExistException("Account does not exist.");
