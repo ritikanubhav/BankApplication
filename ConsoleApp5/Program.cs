@@ -30,23 +30,23 @@ namespace ConsoleApp5
                 switch (choice)
                 {
                     case "1":
-                        Console.WriteLine("Select Account Type (0: SAVINGS, 1: CURRENT): ");
-                        AccountType accType = (AccountType)int.Parse(Console.ReadLine());
-
-                        Console.Write("Enter Name: ");
-                        string name = Console.ReadLine();
-
-                        Console.Write("Set Your PIN: ");
-                        string pin = Console.ReadLine();
-                        
-                        Console.WriteLine("Select Privilege Type (0: REGULAR, 1: GOLD, 2: PREMIUM): ");
-                        PrivilegeType privilegeType = (PrivilegeType)int.Parse(Console.ReadLine());
-
-                        Console.Write("Enter Initial Balance: ");
-                        double balance = double.Parse(Console.ReadLine());
-
                         try
                         {
+                            Console.WriteLine("Select Account Type (0: SAVINGS, 1: CURRENT): ");
+                            AccountType accType = (AccountType)int.Parse(Console.ReadLine());
+
+                            Console.Write("Enter Name: ");
+                            string name = Console.ReadLine();
+
+                            Console.Write("Set Your PIN: ");
+                            string pin = Console.ReadLine();
+                        
+                            Console.WriteLine("Select Privilege Type (0: REGULAR, 1: GOLD, 2: PREMIUM): ");
+                            PrivilegeType privilegeType = (PrivilegeType)int.Parse(Console.ReadLine());
+
+                            Console.Write("Enter Initial Balance: ");
+                            double balance = double.Parse(Console.ReadLine());
+
                             IAccount newAccount = accountManager.CreateAccount(name, pin, balance, privilegeType, accType);
 
                             Console.WriteLine("----------------------------------------------------------------------------------");
@@ -63,12 +63,12 @@ namespace ConsoleApp5
                         break;
 
                     case "2":
-                        Console.Write("Enter Account Number: ");
-                        string accNo = Console.ReadLine().ToUpper();
-                        Console.Write("Enter Amount to Deposit: ");
-                        double depositAmount = double.Parse(Console.ReadLine());
                         try
                         {
+                            Console.Write("Enter Account Number: ");
+                            string accNo = Console.ReadLine().ToUpper();
+                            Console.Write("Enter Amount to Deposit: ");
+                            double depositAmount = double.Parse(Console.ReadLine());
                             bool isDepositSuccess=accountManager.Deposit(accNo, depositAmount);
                             if (isDepositSuccess)
                             {
@@ -93,14 +93,15 @@ namespace ConsoleApp5
                         break;
 
                     case "3":
-                        Console.Write("Enter Account Number: ");
-                        string withdrawAccNo = Console.ReadLine().ToUpper();
-                        Console.Write("Enter PIN: ");
-                        string withdrawPin = Console.ReadLine();
-                        Console.Write("Enter Amount to Withdraw: ");
-                        double withdrawAmount = double.Parse(Console.ReadLine());
                         try
                         {
+                            Console.Write("Enter Account Number: ");
+                            string withdrawAccNo = Console.ReadLine().ToUpper();
+                            Console.Write("Enter PIN: ");
+                            string withdrawPin = Console.ReadLine();
+                            Console.Write("Enter Amount to Withdraw: ");
+                            double withdrawAmount = double.Parse(Console.ReadLine());
+                        
                             bool isWithdrawSuccessful = accountManager.Withdraw(withdrawAccNo, withdrawAmount,withdrawPin);
 
                             if (isWithdrawSuccessful)
@@ -126,113 +127,71 @@ namespace ConsoleApp5
                         break;
 
                     case "4":
-                        //if (account1 == null || account2 == null)
-                        //{
-                        //    Console.WriteLine("----------------------------------------------------------------------------------");
-                        //    Console.WriteLine("Both accounts must be created before transferring funds.");
-                        //    Console.WriteLine("----------------------------------------------------------------------------------");
-                        //    break;
-                        //}
-
-                        Console.Write("Enter From Account Number: ");
-                        string fromAccNo = Console.ReadLine().ToUpper();
-                        Console.Write("Enter To Account Number: ");
-                        string toAccNo = Console.ReadLine().ToUpper();
-                        Console.Write("Enter PIN: ");
-                        string transferPin = Console.ReadLine();
-                        Console.Write("Enter Amount to Transfer: ");
-                        double transferAmount = double.Parse(Console.ReadLine());
-
-                        IAccount fromAccount = (fromAccNo == account1?.AccNo) ? account1 : (fromAccNo == account2?.AccNo) ? account2 : null;
-                        IAccount toAccount = (toAccNo == account1?.AccNo) ? account1 : (toAccNo == account2?.AccNo) ? account2 : null;
-
-                        if (fromAccount != null && toAccount != null)
+                        try
                         {
-                            try
+                            Console.Write("Enter From Account Number: ");
+                            string fromAccNo = Console.ReadLine().ToUpper();
+                            Console.Write("Enter To Account Number: ");
+                            string toAccNo = Console.ReadLine().ToUpper();
+                            Console.Write("Enter PIN: ");
+                            string transferPin = Console.ReadLine();
+                            Console.Write("Enter Amount to Transfer: ");
+                            double transferAmount = double.Parse(Console.ReadLine());
+                            bool isTransferSuccesful = accountManager.TransferFunds(fromAccNo, toAccNo, transferPin, transferAmount);
+                            if (isTransferSuccesful)
                             {
-                                Transfer transfer = new Transfer
-                                {
-                                    FromAccount = fromAccount,
-                                    ToAccount = toAccount,
-                                    Amount = transferAmount,
-                                    Pin = transferPin
-                                };
-                                accountManager.TransferFunds(transfer);
                                 Console.WriteLine("----------------------------------------------------------------------------------");
                                 Console.WriteLine("Transfer successful!");
-                                Console.WriteLine($"New Balance of From Account: {fromAccount.Balance}");
-                                Console.WriteLine($"New Balance of To Account: {toAccount.Balance}");
-                                Console.WriteLine("----------------------------------------------------------------------------------");
                             }
-                            catch (Exception ex)
+                            else
                             {
                                 Console.WriteLine("----------------------------------------------------------------------------------");
-                                Console.WriteLine($"Error: {ex.Message}");
+                                Console.WriteLine("Transfer Unsuccesful");
                                 Console.WriteLine("----------------------------------------------------------------------------------");
-                                logger.Error(ex, "Error During TransferFunds");
-
                             }
+
                         }
-                        else
+                        catch (Exception ex)
                         {
                             Console.WriteLine("----------------------------------------------------------------------------------");
-                            Console.WriteLine("Account not found.");
+                            Console.WriteLine($"Error During Transferring Funds: {ex.Message}");
                             Console.WriteLine("----------------------------------------------------------------------------------");
+                            logger.Error(ex, "Error During TransferFunds");
                         }
                         break;
 
                     case "5":
-                        if (account1 == null && account2 == null)
+                        try
                         {
-                            Console.WriteLine("----------------------------------------------------------------------------------");
-                            Console.WriteLine("Create an account first.");
-                            Console.WriteLine("----------------------------------------------------------------------------------");
-                            break;
-                        }
-
-                        Console.Write("Enter From Account Number: ");
-                        string extFromAccNo = Console.ReadLine().ToUpper();
-                        Console.Write("Enter From Account PIN: ");
-                        string extFromAccPin = Console.ReadLine();
-                        Console.Write("Enter Amount to Transfer: ");
-                        double extTransferAmount = double.Parse(Console.ReadLine());
-
-                        IAccount extFromAccount = (extFromAccNo == account1?.AccNo) ? account1 : (extFromAccNo == account2?.AccNo) ? account2 : null;
-
-                        if (extFromAccount != null)
-                        {
+                            Console.Write("Enter From Account Number: ");
+                            string extFromAccNo = Console.ReadLine().ToUpper();
+                            Console.Write("Enter From Account PIN: ");
+                            string extFromAccPin = Console.ReadLine();
+                            Console.Write("Enter Amount to Transfer: ");
+                            double extTransferAmount = double.Parse(Console.ReadLine());
                             Console.Write("Enter External Account Number: ");
                             string extToAccNo = Console.ReadLine().ToUpper();
                             Console.Write("Enter External Bank Code: ");
                             string extBankCode = Console.ReadLine().ToUpper();
                             Console.Write("Enter External Bank Name: ");
                             string extBankName = Console.ReadLine().ToUpper();
-
-                            try
+                            IAccount extFromAcc = null;
+                            extFromAcc.AccNo=extFromAccNo;
+                            ExternalTransfer extTransfer = new ExternalTransfer(extFromAcc, extTransferAmount, new ExternalAccount
                             {
-                                ExternalTransfer extTransfer = new ExternalTransfer(extFromAccount, extTransferAmount, new ExternalAccount
-                                {
-                                    AccNo = extToAccNo,
-                                    BankCode = extBankCode,
-                                    BankName = extBankName
-                                }, extFromAccPin);
-                                accountManager.ExternalTransferFunds(extTransfer);
-                                Console.WriteLine("----------------------------------------------------------------------------------");
-                                Console.WriteLine("External Transfer successful!");
-                                Console.WriteLine($"New Balance: {extFromAccount.Balance}");
-                                Console.WriteLine("----------------------------------------------------------------------------------");
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.WriteLine($"Error: {ex.Message}");
-                                logger.Error(ex, "error during External Transfer");
-                            }
+                                AccNo = extToAccNo,
+                                BankCode = extBankCode,
+                                BankName = extBankName
+                            }, extFromAccPin);
+                            accountManager.ExternalTransferFunds(extTransfer);
+                            Console.WriteLine("----------------------------------------------------------------------------------");
+                            Console.WriteLine("External Transfer successful!");
+                            Console.WriteLine("----------------------------------------------------------------------------------");
                         }
-                        else
+                        catch (Exception ex)
                         {
-                            Console.WriteLine("----------------------------------------------------------------------------------");
-                            Console.WriteLine("Account not found."+extFromAccNo);
-                            Console.WriteLine("----------------------------------------------------------------------------------");
+                            Console.WriteLine($"Error: {ex.Message}");
+                            logger.Error(ex, "Error during External Transfer");
                         }
                         break;
 

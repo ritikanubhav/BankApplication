@@ -35,7 +35,7 @@ namespace BankApplication.BusinessLayer
             //validating minimum balance requirement for the specific policy
             if (balance < policy.GetMinBalance())
             {
-                throw new MinBalanceNeedsToBeMaintainedException("Minimum balance needs to be maintained.");
+                throw new MinBalanceNeedsToBeMaintainedException($"Minimum Balance needs to be maintained .\nMin balnce should be: {policy.GetMinBalance()}");
             }
 
             // assigning polict to the account
@@ -112,7 +112,7 @@ namespace BankApplication.BusinessLayer
 
             if (fromAccount.Balance - amount < fromAccount.Policy.GetMinBalance())
             {
-                throw new MinBalanceNeedsToBeMaintainedException("Minimum balance needs to be maintained.");
+                throw new MinBalanceNeedsToBeMaintainedException($"Minimum balance needs to be maintained.\nMin balnce should be: {fromAccount.Policy.GetMinBalance()}");
 
             }
 
@@ -128,8 +128,20 @@ namespace BankApplication.BusinessLayer
             return true;
         }
 
-        public bool TransferFunds(Transfer transfer)
+        public bool TransferFunds(string fromAccNo,string toAccNo,string pin,double amount)
         {
+            //getting accounts details from database of from and to accounts
+            IAccount fromAccount = accountRepo.GetAccountByAccNo(fromAccNo);
+            IAccount toAccount = accountRepo.GetAccountByAccNo(toAccNo);
+
+            Transfer transfer = new Transfer
+            {
+                FromAccount = fromAccount,
+                ToAccount = toAccount,
+                Pin = pin,
+                Amount = amount
+            };
+
             if (transfer.FromAccount == null || transfer.ToAccount == null)
             {
                 throw new AccountDoesNotExistException("One or both accounts do not exist.");
@@ -152,7 +164,7 @@ namespace BankApplication.BusinessLayer
 
             if (transfer.FromAccount.Balance - transfer.Amount < transfer.FromAccount.Policy.GetMinBalance())
             {
-                throw new MinBalanceNeedsToBeMaintainedException("Minimum balance needs to be maintained.");
+                throw new MinBalanceNeedsToBeMaintainedException($"Minimum balance needs to be maintained.\nMin balance should be: {transfer.FromAccount.Policy.GetMinBalance()}");
 
             }
 
@@ -178,9 +190,9 @@ namespace BankApplication.BusinessLayer
             depositTransaction.Status = TransactionStatus.CLOSE;
 
             //Updating account  balance data to accounts table in our database after transfer
-            accountRepo.Update(transfer.ToAccount.AccNo, transfer.ToAccount.Balance);
-            accountRepo.Update(transfer.FromAccount.AccNo, transfer.FromAccount.Balance);
-            return true;
+            if(accountRepo.FundTransfer(fromAccNo, toAccNo, amount))
+                return true;
+            else return false;
         }
 
         public bool ExternalTransferFunds(ExternalTransfer externalTransfer)

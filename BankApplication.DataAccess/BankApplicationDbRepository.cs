@@ -3,7 +3,6 @@ using System.Data;
 using System.Configuration;
 using System.Data.SqlClient;
 using BankApplication.Common;
-using BankApplication.BusinessLayer;
 namespace BankApplication.DataAccess
 {
     public class BankApplicationDbRepository
@@ -43,7 +42,7 @@ namespace BankApplication.DataAccess
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                throw e;
             }
             finally
             {
@@ -87,20 +86,24 @@ namespace BankApplication.DataAccess
                     account.Balance = (double)reader[5];
                     account.PrivilegeType= Enum.Parse<PrivilegeType>(reader[6].ToString());
                 }
+                if (account != null)
+                {
+                    //creating policy for the account using policyfactory instance
+                    PolicyFactory policyFactory = PolicyFactory.Instance;
+                    IPolicy policy = policyFactory.CreatePolicy(account.GetAccType(), account.PrivilegeType.ToString());
 
-                //creating policy for the account using policyfactory instance
-                PolicyFactory policyFactory = PolicyFactory.Instance;
-                IPolicy policy = policyFactory.CreatePolicy(account.GetAccType(), account.PrivilegeType.ToString());
-                
-                //assigning policy to account
-                account.Policy = policy;
-
+                    //assigning policy to account
+                    account.Policy = policy;
+                }
+                else
+                {
+                    throw new AccountDoesNotExistException($"Account does not exist with account no:{accountNo}");
+                }
                 return account;
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
-                return account;
+                throw e;
             }
             finally
             {
@@ -135,11 +138,63 @@ namespace BankApplication.DataAccess
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                throw e;
             }
             finally
             {
                 conn.Close();//close connection as soon as possible
+            }
+        }
+
+        public bool FundTransfer(string fromAccNo, string toAccNo, double amount)
+        {
+            //create db connection
+            SqlConnection connection = new SqlConnection();
+
+            //prepare connection string
+            string conStr = ConfigurationManager.ConnectionStrings["default"].ConnectionString;
+            connection.ConnectionString = conStr;
+
+            //prepare withdraw sql update and execute it
+            string withdraw = $"update accounts set Balance=Balance -@withdrawalAmount where AccNo=@fromAccNo";
+            
+            SqlCommand cmd1 = new SqlCommand(withdraw, connection);
+            cmd1.Parameters.AddWithValue("@fromAccNo",fromAccNo);
+            cmd1.Parameters.AddWithValue("@withdrawalAmount", amount);
+
+            //prepare deposit sql update and execute it
+            string deposit = $"update accounts set Balance=Balance +@depositAmount where AccNo=@toAccNo";
+            
+            SqlCommand cmd2 = new SqlCommand(deposit, connection);
+            cmd2.Parameters.AddWithValue("@toAccNo", toAccNo);
+            cmd2.Parameters.AddWithValue("@depositAmount", amount);
+
+            //Creating Transaction: grouped all commmands
+            connection.Open();
+            SqlTransaction trans = connection.BeginTransaction();
+            cmd1.Transaction = trans;
+            cmd2.Transaction = trans;
+
+            try
+            {
+                cmd1.ExecuteNonQuery();//withdraw
+                Console.WriteLine($"From {fromAccNo} amount {amount} debited");
+
+                cmd2.ExecuteNonQuery();//deposit
+                Console.WriteLine($"To {toAccNo} amount {amount} credited");
+
+                trans.Commit();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                
+                trans.Rollback();
+                throw ex;
+            }
+            finally
+            {
+                connection.Close();
             }
         }
     }

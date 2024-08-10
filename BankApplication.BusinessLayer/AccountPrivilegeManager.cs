@@ -1,5 +1,4 @@
-﻿using BankApplication.DataAccess;
-
+﻿
 using BankApplication.Common;
 namespace BankApplication.BusinessLayer
 {
@@ -9,9 +8,15 @@ namespace BankApplication.BusinessLayer
 
         static AccountPrivilegeManager()
         {
-            LoadDailyLimits();
+            try
+            {
+                LoadDailyLimits();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
-
         private static void LoadDailyLimits()
         {
             foreach (var line in File.ReadAllLines("dailyLimits.properties"))
