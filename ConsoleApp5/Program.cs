@@ -86,7 +86,7 @@ namespace ConsoleApp5
                         catch (Exception ex)
                         {
                             Console.WriteLine("----------------------------------------------------------------------------------");
-                            Console.WriteLine($"Error: {ex.Message}");
+                            Console.WriteLine($"Error: {ex}");
                             Console.WriteLine("----------------------------------------------------------------------------------");
                             logger.Error(ex, "Error during Deposit");
                         }

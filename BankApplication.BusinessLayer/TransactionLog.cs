@@ -1,4 +1,4 @@
-﻿
+﻿using BankApplication.DataAccess;
 using BankApplication.Common;
 namespace BankApplication.BusinessLayer
 {
@@ -20,6 +20,7 @@ namespace BankApplication.BusinessLayer
             }
 
             transactionLog[accNo][type].Add(transaction);
+
         }
         public static Dictionary<string, Dictionary<TransactionTypes, List<Transaction>>> GetTransactions()
         {

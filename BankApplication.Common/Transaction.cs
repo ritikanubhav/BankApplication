@@ -15,7 +15,7 @@ namespace BankApplication.Common
             FromAccount = fromAccount;
             TranDate = DateTime.Now;
             Amount = amount;
-            Status = TransactionStatus.OPEN; // Default status
+            Status = TransactionStatus.CLOSE; // Default status for normal Transfer
         }
     }
     public enum TransactionStatus

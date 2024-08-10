@@ -7,7 +7,7 @@ namespace BankApplication.DataAccess
 {
     public class BankApplicationDbRepository
     {
-        public void Create(IAccount account)
+        public bool Create(IAccount account)
         {
 
             SqlConnection connection = new SqlConnection();
@@ -39,6 +39,7 @@ namespace BankApplication.DataAccess
             {
                 connection.Open();//open as late as possible
                 cmd.ExecuteNonQuery();
+                return true;
             }
             catch (Exception e)
             {
@@ -111,7 +112,7 @@ namespace BankApplication.DataAccess
             }
             
         }
-        public void Update(string accountNo,double newBalance)
+        public bool Update(string accountNo,double newBalance)
         {
             SqlConnection conn = new SqlConnection();
 
@@ -135,6 +136,7 @@ namespace BankApplication.DataAccess
             {
                 conn.Open();//open as late as possible
                 cmd.ExecuteNonQuery();
+                return true;
             }
             catch (Exception e)
             {

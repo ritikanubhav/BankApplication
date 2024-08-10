@@ -9,9 +9,9 @@ using BankApplication.Common;
 
 namespace BankApplication.DataAccess
 {
-    internal class BankApplicationDbTransactionRepo
+    public class BankApplicationDbTransactionRepo
     {
-        public void Create(IAccount account)
+        public bool InsertTransaction(Transaction trans,TransactionTypes transactionType)
         {
 
             SqlConnection connection = new SqlConnection();
@@ -20,33 +20,31 @@ namespace BankApplication.DataAccess
             connection.ConnectionString = conStr;
 
 
-            string sqlInsert = $"insert into accounts values (@accNo,@name,@pin,@active,@dtOfOpening,@balance,@privelegeType,@accType)";
+            string sqlInsert = $"insert into transactions values (@transId,@transactionType,@accNo,@date,@amount)";
 
             SqlCommand cmd = new SqlCommand();
             SqlParameter p1 = new SqlParameter();
 
-            p1.ParameterName = "@accNo";
-            p1.Value = account.AccNo;
+            p1.ParameterName = "@transId";
+            p1.Value = trans.TransID;
             cmd.Parameters.Add(p1);
 
-            cmd.Parameters.AddWithValue("@name", account.Name);
-            cmd.Parameters.AddWithValue("@pin", account.Pin);
-            cmd.Parameters.AddWithValue("@active", account.Active);
-            cmd.Parameters.AddWithValue("@dtOfOpening", account.DateOfOpening);
-            cmd.Parameters.AddWithValue("@balance", account.Balance);
-            cmd.Parameters.AddWithValue("@privelegeType", account.PrivilegeType.ToString());
-            cmd.Parameters.AddWithValue("@accType", account.GetAccType());
-
+            cmd.Parameters.AddWithValue("@transactionType", transactionType.ToString());
+            cmd.Parameters.AddWithValue("@accNo", trans.FromAccount.AccNo);
+            cmd.Parameters.AddWithValue("@date", trans.TranDate);
+            cmd.Parameters.AddWithValue("@amount", trans.Amount);
+            
             cmd.CommandText = sqlInsert;
             cmd.Connection = connection;
             try
             {
                 connection.Open();//open as late as possible
                 cmd.ExecuteNonQuery();
+                return true;
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                throw e;
             }
             finally
             {

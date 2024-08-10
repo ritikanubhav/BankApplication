@@ -15,6 +15,9 @@ namespace BankApplication.BusinessLayer
         //creating accountrepo instance to use its methods for manipulating the accounts table in database
         BankApplicationDbRepository accountRepo = new BankApplicationDbRepository();
 
+        //creating Transactionrepo object of dataAccess layer to implement transaction table methods
+        BankApplicationDbTransactionRepo transRepo = new BankApplicationDbTransactionRepo();
+
         public IAccount CreateAccount(string name, string pin, double balance, PrivilegeType privilegeType, AccountType accType)
         {
             //calling accountfactory createaccount method 
@@ -71,16 +74,20 @@ namespace BankApplication.BusinessLayer
                 throw new ArgumentException("Deposit amount must be greater than zero.");
             }
 
-            //update the balance
+            //update the balance in account instance
             toAccount.Balance += amount;
 
-            //logging transaction
-            TransactionLog.LogTransaction(toAccount.AccNo, TransactionTypes.DEPOSIT, new Transaction(toAccount, amount));
+            //Updating account balance to accounts table in our database
+            if(accountRepo.Update(toAccount.AccNo, toAccount.Balance))
+            {
+                //logging transaction
+                TransactionLog.LogTransaction(toAccount.AccNo, TransactionTypes.DEPOSIT, new Transaction(toAccount, amount));
 
-            //Updating account  balance data to accounts table in our database
-            accountRepo.Update(toAccount.AccNo, toAccount.Balance);
-
-            return true;
+                //inserting Transaction in database
+                transRepo.InsertTransaction(new Transaction(toAccount, amount),TransactionTypes.DEPOSIT);
+                return true;
+            }
+            return false;
         }
 
 
@@ -119,13 +126,17 @@ namespace BankApplication.BusinessLayer
             // update the balance
             fromAccount.Balance -= amount;
 
-            //Updating account  balance data to accounts table in our database
-            accountRepo.Update(fromAccount.AccNo, fromAccount.Balance);
+            //Updating account balance data to accounts table in our database
+            if (accountRepo.Update(fromAccount.AccNo, fromAccount.Balance))
+            {
+                //logging transaction
+                TransactionLog.LogTransaction(fromAccount.AccNo, TransactionTypes.WITHDRAW, new Transaction(fromAccount, amount));
 
-            //logging transaction
-            TransactionLog.LogTransaction(fromAccount.AccNo, TransactionTypes.WITHDRAW, new Transaction(fromAccount, amount));
-
-            return true;
+                //inserting Transaction to the database
+                transRepo.InsertTransaction(new Transaction(fromAccount, amount), TransactionTypes.WITHDRAW);
+                return true;
+            }
+            return false;
         }
 
         public bool TransferFunds(string fromAccNo,string toAccNo,string pin,double amount)
@@ -134,6 +145,7 @@ namespace BankApplication.BusinessLayer
             IAccount fromAccount = accountRepo.GetAccountByAccNo(fromAccNo);
             IAccount toAccount = accountRepo.GetAccountByAccNo(toAccNo);
 
+            //creating a transfer object
             Transfer transfer = new Transfer
             {
                 FromAccount = fromAccount,
@@ -175,24 +187,28 @@ namespace BankApplication.BusinessLayer
             if (totalTransferredAmountToday + transfer.Amount > dailyLimit)
                 throw new DailyLimitExceededException();
 
+            //update the balance in accounts
             transfer.FromAccount.Balance -= transfer.Amount;
             transfer.ToAccount.Balance += transfer.Amount;
 
-            int transactionID = IDGenerator.GenerateID();
-
-            Transaction withdrawTransaction = new Transaction(transfer.FromAccount, transfer.Amount);
-            Transaction depositTransaction = new Transaction(transfer.ToAccount, transfer.Amount);
-
-            TransactionLog.LogTransaction(transfer.FromAccount.AccNo, TransactionTypes.WITHDRAW, withdrawTransaction);
-            TransactionLog.LogTransaction(transfer.ToAccount.AccNo,TransactionTypes.DEPOSIT, depositTransaction);
-
-            withdrawTransaction.Status = TransactionStatus.CLOSE;
-            depositTransaction.Status = TransactionStatus.CLOSE;
-
-            //Updating account  balance data to accounts table in our database after transfer
+            //Updating account balance data to accounts table in our database after transfer
+            //and checking if it is successful
             if(accountRepo.FundTransfer(fromAccNo, toAccNo, amount))
+            {
+                //logging Transactions
+                int transactionID = IDGenerator.GenerateID();
+
+                Transaction withdrawTransaction = new Transaction(transfer.FromAccount, transfer.Amount);
+                Transaction depositTransaction = new Transaction(transfer.ToAccount, transfer.Amount);
+
+                TransactionLog.LogTransaction(transfer.FromAccount.AccNo, TransactionTypes.WITHDRAW, withdrawTransaction);
+                TransactionLog.LogTransaction(transfer.ToAccount.AccNo, TransactionTypes.DEPOSIT, depositTransaction);
+
+                // inserting transaction log to database
+                transRepo.InsertTransaction(withdrawTransaction, TransactionTypes.TRANSFER);
                 return true;
-            else return false;
+            }
+            return false;
         }
 
         public bool ExternalTransferFunds(ExternalTransfer externalTransfer)
