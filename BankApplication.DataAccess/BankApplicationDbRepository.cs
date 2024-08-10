@@ -73,11 +73,11 @@ namespace BankApplication.DataAccess
                 SqlDataReader reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
-                    Console.WriteLine(reader[0].ToString());
                     if (reader["accType"].ToString() == "SAVINGS")
                         account = new Saving();
                     else
                         account = new Current();
+
                     account.AccNo = reader[0].ToString();
                     account.Name = reader[1].ToString();
                     account.Pin= reader[2].ToString();
@@ -85,15 +85,13 @@ namespace BankApplication.DataAccess
                     account.DateOfOpening=Convert.ToDateTime(reader[4]);
                     account.Balance = (double)reader[5];
                     account.PrivilegeType= Enum.Parse<PrivilegeType>(reader[6].ToString());
-
                 }
                 return account;
-
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
-                return null;
+                return account;
             }
             finally
             {
