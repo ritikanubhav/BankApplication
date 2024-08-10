@@ -20,7 +20,10 @@ namespace BankApplication.Common
         {
             int currentID = ReadCurrentID();
             int newID = currentID + 1;
-            WriteNewID(newID);
+            using (StreamWriter writer = new StreamWriter(filePath, append: false))
+            {
+                writer.WriteLine(newID);
+            }
             return newID;
         }
 

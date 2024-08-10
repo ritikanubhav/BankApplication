@@ -16,7 +16,8 @@ namespace BankApplication.DataAccess
             connection.ConnectionString = conStr;
 
 
-            string sqlInsert = $"insert into accounts values (@accNo,@name,@pin,@active,@dtOfOpening,@balance,@privelegeType,@accType)";
+            //string sqlInsert = $"insert into accounts values (@accNo,@name,@pin,@active,@dtOfOpening,@balance,@privelegeType,@accType)";
+            string sqlInsert = "sp_InsertAccount";
 
             SqlCommand cmd = new SqlCommand();
             SqlParameter p1 = new SqlParameter();
@@ -34,6 +35,7 @@ namespace BankApplication.DataAccess
             cmd.Parameters.AddWithValue("@accType", account.GetAccType());
 
             cmd.CommandText = sqlInsert;
+            cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = connection;
             try
             {
@@ -59,12 +61,15 @@ namespace BankApplication.DataAccess
             string conStr = ConfigurationManager.ConnectionStrings["default"].ConnectionString;
             conn.ConnectionString = conStr;
 
-            string sqlSelect = $"select * from accounts where AccNo=@accNo";
+            //string sqlSelect = $"select * from accounts where AccNo=@accNo";
+            string sqlSelect = "sp_getAccountByAccNo";
 
             SqlCommand cmd = new SqlCommand();
 
             cmd.Parameters.AddWithValue("@accNo", accountNo);
             cmd.CommandText = sqlSelect;
+            cmd.CommandType = CommandType.StoredProcedure;
+
             cmd.Connection = conn;
 
             try
@@ -120,7 +125,8 @@ namespace BankApplication.DataAccess
             conn.ConnectionString = conStr;
 
 
-            string sqlUpdate = $"update accounts set Balance=@balance where AccNo=@accNo";
+            //string sqlUpdate = $"update accounts set Balance=@balance where AccNo=@accNo";
+            string sqlUpdate = "sp_UpdateBalance";
 
             SqlCommand cmd = new SqlCommand();
             SqlParameter p1 = new SqlParameter();
@@ -131,6 +137,8 @@ namespace BankApplication.DataAccess
             cmd.Parameters.AddWithValue("@accNo", accountNo);
             
             cmd.CommandText = sqlUpdate;
+            cmd.CommandType = CommandType.StoredProcedure;
+
             cmd.Connection = conn;
             try
             {
