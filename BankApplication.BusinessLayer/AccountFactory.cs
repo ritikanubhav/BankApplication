@@ -24,8 +24,6 @@ namespace BankApplication.BusinessLayer
                 default:
                     throw new InvalidAccountTypeException("Invalid account type.");
             }
-            account.Open();
-
             return account;
         }
     }

@@ -7,42 +7,89 @@ using System.Threading.Tasks;
 using BankApplication.DataAccess;
 
 using BankApplication.Common;
+using System.Security.AccessControl;
 namespace BankApplication.BusinessLayer
 {
     public class AccountManager
     {
-        BankApplicationDbRepository repo = new BankApplicationDbRepository();
+        //creating accountrepo instance to use its methods for manipulating the accounts table in database
+        BankApplicationDbRepository accountRepo = new BankApplicationDbRepository();
 
         public IAccount CreateAccount(string name, string pin, double balance, PrivilegeType privilegeType, AccountType accType)
         {
+            //calling accountfactory createaccount method 
             IAccount account =AccountFactory.CreateAccount(name, pin, balance, privilegeType, accType);
 
+            //creating policy for the account using policyfactory instance
             PolicyFactory policyFactory = PolicyFactory.Instance;
             IPolicy policy;
-
             try
             {
                 policy = policyFactory.CreatePolicy(accType.ToString(), privilegeType.ToString());
             }
-            catch (InvalidPolicyTypeException)
+            catch (InvalidPolicyTypeException e)
             {
-                throw new UnableToOpenAccountException("Invalid policy type.");
+                throw e;
             }
 
+            //validating minimum balance requirement for the specific policy
             if (balance < policy.GetMinBalance())
             {
                 throw new MinBalanceNeedsToBeMaintainedException("Minimum balance needs to be maintained.");
             }
+
+            // assigning polict to the account
             account.Policy = policy;
 
+            // activating the account and assigning account no
+            account.Open();
+
             //sending account data to accounts table in our database
-            repo.Create(account);
+            accountRepo.Create(account);
 
             return account;
         }
-
-        public bool Withdraw(IAccount fromAccount, double amount, string pin)
+        
+        public bool Deposit(string  AccNo, double amount)
         {
+            //getting account details from accounts table in database
+            IAccount toAccount=accountRepo.GetAccountByAccNo(AccNo);
+
+            //validating details otherwise throwing errors
+            if (toAccount == null)
+            {
+                throw new AccountDoesNotExistException("Account does not exist.");
+            }
+
+            if (!toAccount.Active)
+            {
+                throw new InactiveAccountException("Account is inactive.");
+            }
+
+            if (amount <= 0)
+            {
+                throw new ArgumentException("Deposit amount must be greater than zero.");
+            }
+
+            //update the balance
+            toAccount.Balance += amount;
+
+            //logging transaction
+            TransactionLog.LogTransaction(toAccount.AccNo, TransactionTypes.DEPOSIT, new Transaction(toAccount, amount));
+
+            //Updating account  balance data to accounts table in our database
+            accountRepo.Update(toAccount.AccNo, toAccount.Balance);
+
+            return true;
+        }
+
+
+        public bool Withdraw(string AccNo, double amount, string pin)
+        {
+            //getting account details from database
+            IAccount fromAccount = accountRepo.GetAccountByAccNo(AccNo);
+
+            //validating details otherwise throw error
             if (fromAccount == null)
             {
                 throw new AccountDoesNotExistException("Account does not exist.");
@@ -63,42 +110,20 @@ namespace BankApplication.BusinessLayer
                 throw new InsufficientBalanceException("Insufficient balance.");
             }
 
+            if (fromAccount.Balance - amount < fromAccount.Policy.GetMinBalance())
+            {
+                throw new MinBalanceNeedsToBeMaintainedException("Minimum balance needs to be maintained.");
+
+            }
+
+            // update the balance
             fromAccount.Balance -= amount;
 
             //Updating account  balance data to accounts table in our database
-            repo.Update(fromAccount.AccNo,fromAccount.Balance);
+            accountRepo.Update(fromAccount.AccNo, fromAccount.Balance);
 
+            //logging transaction
             TransactionLog.LogTransaction(fromAccount.AccNo, TransactionTypes.WITHDRAW, new Transaction(fromAccount, amount));
-
-            return true;
-        }
-
-        
-        public bool Deposit(string  AccNo, double amount)
-        {
-            IAccount toAccount=repo.GetAccountByAccNo(AccNo);
-
-            if (toAccount == null)
-            {
-                throw new AccountDoesNotExistException("Account does not exist.");
-            }
-
-            if (!toAccount.Active)
-            {
-                throw new InactiveAccountException("Account is inactive.");
-            }
-
-            if (amount <= 0)
-            {
-                throw new ArgumentException("Deposit amount must be greater than zero.");
-            }
-
-            toAccount.Balance += amount;
-
-            TransactionLog.LogTransaction(toAccount.AccNo, TransactionTypes.DEPOSIT, new Transaction(toAccount, amount));
-
-            //Updating account  balance data to accounts table in our database
-            repo.Update(toAccount.AccNo, toAccount.Balance);
 
             return true;
         }
@@ -153,8 +178,8 @@ namespace BankApplication.BusinessLayer
             depositTransaction.Status = TransactionStatus.CLOSE;
 
             //Updating account  balance data to accounts table in our database after transfer
-            repo.Update(transfer.ToAccount.AccNo, transfer.ToAccount.Balance);
-            repo.Update(transfer.FromAccount.AccNo, transfer.FromAccount.Balance);
+            accountRepo.Update(transfer.ToAccount.AccNo, transfer.ToAccount.Balance);
+            accountRepo.Update(transfer.FromAccount.AccNo, transfer.FromAccount.Balance);
             return true;
         }
 
@@ -186,7 +211,7 @@ namespace BankApplication.BusinessLayer
             externalTransfer.Status = TransactionStatus.OPEN;
 
             //Updating account  balance data to accounts table in our database after transfer
-            repo.Update(externalTransfer.FromAccount.AccNo, externalTransfer.FromAccount.Balance);
+            accountRepo.Update(externalTransfer.FromAccount.AccNo, externalTransfer.FromAccount.Balance);
 
             return true;
         }

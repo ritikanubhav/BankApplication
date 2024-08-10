@@ -52,22 +52,6 @@ namespace ConsoleApp5
                             Console.WriteLine("----------------------------------------------------------------------------------");
                             Console.WriteLine($"Account created successfully! Account Number: {newAccount.AccNo}");
                             Console.WriteLine("----------------------------------------------------------------------------------");
-
-                            if (account1 == null)
-                            {
-                                account1 = newAccount;
-                            }
-                            else if (account2 == null)
-                            {
-                                account2 = newAccount;
-                            }
-                            else
-                            {
-                                Console.WriteLine("----------------------------------------------------------------------------------");
-                                Console.WriteLine("You already have two accounts. Use the existing accounts for transactions.");
-                                Console.WriteLine("----------------------------------------------------------------------------------");
-
-                            }
                         }
                         catch (Exception ex)
                         {
@@ -115,42 +99,40 @@ namespace ConsoleApp5
                         string withdrawPin = Console.ReadLine();
                         Console.Write("Enter Amount to Withdraw: ");
                         double withdrawAmount = double.Parse(Console.ReadLine());
-                        IAccount withdrawAccount = (withdrawAccNo == account1?.AccNo) ? account1 : (withdrawAccNo == account2?.AccNo) ? account2 : null;
-
-                        if (withdrawAccount != null)
+                        try
                         {
-                            try
+                            bool isWithdrawSuccessful = accountManager.Withdraw(withdrawAccNo, withdrawAmount,withdrawPin);
+
+                            if (isWithdrawSuccessful)
                             {
-                                accountManager.Withdraw(withdrawAccount, withdrawAmount, withdrawPin);
                                 Console.WriteLine("----------------------------------------------------------------------------------");
-                                Console.WriteLine("Withdrawal successful!");
-                                Console.WriteLine($"New Balance: {withdrawAccount.Balance}");
+                                Console.WriteLine("Withdraw successful!");
                                 Console.WriteLine("----------------------------------------------------------------------------------");
                             }
-                            catch (Exception ex)
+                            else
                             {
                                 Console.WriteLine("----------------------------------------------------------------------------------");
-                                Console.WriteLine($"Error: {ex.Message}");
+                                Console.WriteLine("Error in Withdrawal.");
                                 Console.WriteLine("----------------------------------------------------------------------------------");
-                                logger.Error(ex, "Error During withdrawal");
                             }
                         }
-                        else
+                        catch(Exception ex)
                         {
                             Console.WriteLine("----------------------------------------------------------------------------------");
-                            Console.WriteLine("Account not found.");
+                            Console.WriteLine($"Error: {ex.Message}");
                             Console.WriteLine("----------------------------------------------------------------------------------");
+                            logger.Error(ex, "Error during Deposit");
                         }
                         break;
 
                     case "4":
-                        if (account1 == null || account2 == null)
-                        {
-                            Console.WriteLine("----------------------------------------------------------------------------------");
-                            Console.WriteLine("Both accounts must be created before transferring funds.");
-                            Console.WriteLine("----------------------------------------------------------------------------------");
-                            break;
-                        }
+                        //if (account1 == null || account2 == null)
+                        //{
+                        //    Console.WriteLine("----------------------------------------------------------------------------------");
+                        //    Console.WriteLine("Both accounts must be created before transferring funds.");
+                        //    Console.WriteLine("----------------------------------------------------------------------------------");
+                        //    break;
+                        //}
 
                         Console.Write("Enter From Account Number: ");
                         string fromAccNo = Console.ReadLine().ToUpper();

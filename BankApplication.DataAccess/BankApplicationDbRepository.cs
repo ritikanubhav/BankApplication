@@ -3,6 +3,7 @@ using System.Data;
 using System.Configuration;
 using System.Data.SqlClient;
 using BankApplication.Common;
+using BankApplication.BusinessLayer;
 namespace BankApplication.DataAccess
 {
     public class BankApplicationDbRepository
@@ -58,19 +59,19 @@ namespace BankApplication.DataAccess
             string conStr = ConfigurationManager.ConnectionStrings["default"].ConnectionString;
             conn.ConnectionString = conStr;
 
-
             string sqlSelect = $"select * from accounts where AccNo=@accNo";
 
             SqlCommand cmd = new SqlCommand();
 
             cmd.Parameters.AddWithValue("@accNo", accountNo);
-
             cmd.CommandText = sqlSelect;
             cmd.Connection = conn;
+
             try
             {
                 conn.Open();
                 SqlDataReader reader = cmd.ExecuteReader();
+
                 while (reader.Read())
                 {
                     if (reader["accType"].ToString() == "SAVINGS")
@@ -86,6 +87,14 @@ namespace BankApplication.DataAccess
                     account.Balance = (double)reader[5];
                     account.PrivilegeType= Enum.Parse<PrivilegeType>(reader[6].ToString());
                 }
+
+                //creating policy for the account using policyfactory instance
+                PolicyFactory policyFactory = PolicyFactory.Instance;
+                IPolicy policy = policyFactory.CreatePolicy(account.GetAccType(), account.PrivilegeType.ToString());
+                
+                //assigning policy to account
+                account.Policy = policy;
+
                 return account;
             }
             catch (Exception e)
