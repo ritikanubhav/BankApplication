@@ -117,7 +117,66 @@ namespace BankApplication.DataAccess
             }
             
         }
-        public bool Update(string accountNo,double newBalance)
+
+        public List<IAccount> GetAllAccounts()
+        {
+            List<IAccount> accounts = new List<IAccount>();
+
+            SqlConnection conn = new SqlConnection();
+
+            string conStr = ConfigurationManager.ConnectionStrings["default"].ConnectionString;
+            conn.ConnectionString = conStr;
+
+            string sqlSelect = $"select * from accounts";
+
+            SqlCommand cmd = new SqlCommand();
+
+            cmd.CommandText = sqlSelect;
+
+            cmd.Connection = conn;
+
+            try
+            {
+                conn.Open();
+                SqlDataReader reader = cmd.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    IAccount account;
+                    if (reader["accType"].ToString() == "SAVINGS")
+                        account = new Saving();
+                    else
+                        account = new Current();
+
+                    account.AccNo = reader[0].ToString();
+                    account.Name = reader[1].ToString();
+                    account.Pin = reader[2].ToString();
+                    account.Active = Convert.ToBoolean(reader[3]);
+                    account.DateOfOpening = Convert.ToDateTime(reader[4]);
+                    account.Balance = (double)reader[5];
+                    account.PrivilegeType = Enum.Parse<PrivilegeType>(reader[6].ToString());
+
+                    //creating policy for the account using policyfactory instance
+                    PolicyFactory policyFactory = PolicyFactory.Instance;
+                    IPolicy policy = policyFactory.CreatePolicy(account.GetAccType(), account.PrivilegeType.ToString());
+                    //assigning policy to account
+                    account.Policy = policy;
+
+                    //adding account to list
+                    accounts.Add(account);
+                }
+                return accounts;
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+            finally
+            {
+                conn.Close();
+            }
+        }
+        public bool Update(IAccount account)
         {
             SqlConnection conn = new SqlConnection();
 
@@ -132,9 +191,9 @@ namespace BankApplication.DataAccess
             SqlParameter p1 = new SqlParameter();
 
             p1.ParameterName = "@balance";
-            p1.Value = newBalance;
+            p1.Value = account.Balance;
             cmd.Parameters.Add(p1);
-            cmd.Parameters.AddWithValue("@accNo", accountNo);
+            cmd.Parameters.AddWithValue("@accNo", account.AccNo);
             
             cmd.CommandText = sqlUpdate;
             cmd.CommandType = CommandType.StoredProcedure;

@@ -1,5 +1,4 @@
 ﻿
-using BankApplication.DataAccess;
 
 using BankApplication.Common;
 namespace BankApplication.BusinessLayer
@@ -8,7 +7,7 @@ namespace BankApplication.BusinessLayer
     {
         public ExternalAccount ToExternalAccount { get; set; }
         public string FromAccPin { get; set; }
-        public ExternalTransfer(IAccount fromAccount, double amount, ExternalAccount toExternalAccount, string fromAccPin)
+        public ExternalTransfer(string fromAccount, double amount, ExternalAccount toExternalAccount, string fromAccPin)
             : base(fromAccount, amount)
         {
             ToExternalAccount = toExternalAccount;

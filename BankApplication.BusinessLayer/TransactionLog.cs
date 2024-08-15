@@ -4,9 +4,13 @@ namespace BankApplication.BusinessLayer
 {
     public static class TransactionLog
     {
-        private static readonly Dictionary<string, Dictionary<TransactionTypes, List<Transaction>>> transactionLog
-            = new Dictionary<string, Dictionary<TransactionTypes, List<Transaction>>>();
+        private static readonly Dictionary<string, Dictionary<TransactionTypes, List<Transaction>>> transactionLog = new Dictionary<string, Dictionary<TransactionTypes, List<Transaction>>>();
+        static TransactionLog() {
 
+            BankApplicationDbTransactionRepo dbTransactionRepo = new BankApplicationDbTransactionRepo();
+            transactionLog
+            = dbTransactionRepo.GetAllTransactions();
+        }
         public static void LogTransaction(string accNo, TransactionTypes type, Transaction transaction)
         {
             if (!transactionLog.ContainsKey(accNo))

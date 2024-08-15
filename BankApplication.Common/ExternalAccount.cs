@@ -1,6 +1,4 @@
-﻿using BankApplication.DataAccess;
-
-using BankApplication.Common;
+﻿using BankApplication.Common;
 namespace BankApplication.BusinessLayer
 {
     public class ExternalAccount

@@ -1,6 +1,6 @@
-﻿using BankApplication.BusinessLayer;
+﻿using System;
+using BankApplication.BusinessLayer;
 using BankApplication.Common;
-//using BankApplication.DataAccess;
 namespace ConsoleApp5
 {
     public class Program
@@ -22,7 +22,8 @@ namespace ConsoleApp5
                 Console.WriteLine("3. Withdraw");
                 Console.WriteLine("4. Transfer Funds");
                 Console.WriteLine("5. External Transfer");
-                Console.WriteLine("6. Exit");
+                Console.WriteLine("6. Generate Reports");
+                Console.WriteLine("7. Exit");
                 Console.WriteLine("----------------------------------------------------------------------------------");
                 Console.Write("Enter your choice: ");
                 string choice = Console.ReadLine();
@@ -40,7 +41,7 @@ namespace ConsoleApp5
 
                             Console.Write("Set Your PIN: ");
                             string pin = Console.ReadLine();
-                        
+
                             Console.WriteLine("Select Privilege Type (0: REGULAR, 1: GOLD, 2: PREMIUM): ");
                             PrivilegeType privilegeType = (PrivilegeType)int.Parse(Console.ReadLine());
 
@@ -69,7 +70,7 @@ namespace ConsoleApp5
                             string accNo = Console.ReadLine().ToUpper();
                             Console.Write("Enter Amount to Deposit: ");
                             double depositAmount = double.Parse(Console.ReadLine());
-                            bool isDepositSuccess=accountManager.Deposit(accNo, depositAmount);
+                            bool isDepositSuccess = accountManager.Deposit(accNo, depositAmount);
                             if (isDepositSuccess)
                             {
                                 Console.WriteLine("----------------------------------------------------------------------------------");
@@ -101,8 +102,8 @@ namespace ConsoleApp5
                             string withdrawPin = Console.ReadLine();
                             Console.Write("Enter Amount to Withdraw: ");
                             double withdrawAmount = double.Parse(Console.ReadLine());
-                        
-                            bool isWithdrawSuccessful = accountManager.Withdraw(withdrawAccNo, withdrawAmount,withdrawPin);
+
+                            bool isWithdrawSuccessful = accountManager.Withdraw(withdrawAccNo, withdrawAmount, withdrawPin);
 
                             if (isWithdrawSuccessful)
                             {
@@ -117,7 +118,7 @@ namespace ConsoleApp5
                                 Console.WriteLine("----------------------------------------------------------------------------------");
                             }
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
                             Console.WriteLine("----------------------------------------------------------------------------------");
                             Console.WriteLine($"Error: {ex.Message}");
@@ -175,14 +176,14 @@ namespace ConsoleApp5
                             string extBankCode = Console.ReadLine().ToUpper();
                             Console.Write("Enter External Bank Name: ");
                             string extBankName = Console.ReadLine().ToUpper();
-                            IAccount extFromAcc = null;
-                            extFromAcc.AccNo=extFromAccNo;
-                            ExternalTransfer extTransfer = new ExternalTransfer(extFromAcc, extTransferAmount, new ExternalAccount
+
+                            ExternalTransfer extTransfer = new ExternalTransfer(extFromAccNo, extTransferAmount, new ExternalAccount
                             {
                                 AccNo = extToAccNo,
                                 BankCode = extBankCode,
                                 BankName = extBankName
                             }, extFromAccPin);
+
                             accountManager.ExternalTransferFunds(extTransfer);
                             Console.WriteLine("----------------------------------------------------------------------------------");
                             Console.WriteLine("External Transfer successful!");
@@ -190,12 +191,116 @@ namespace ConsoleApp5
                         }
                         catch (Exception ex)
                         {
+                            Console.WriteLine("----------------------------------------------------------------------------------");
                             Console.WriteLine($"Error: {ex.Message}");
+                            Console.WriteLine("----------------------------------------------------------------------------------");
                             logger.Error(ex, "Error during External Transfer");
                         }
                         break;
 
                     case "6":
+                        try
+                        {
+                            bool exit = false;
+                            while (!exit)
+                            {
+                                Console.WriteLine("----------------------------------------------------------------------------------");
+                                Console.WriteLine("\n                            Report Generator Menu:");
+                                Console.WriteLine("----------------------------------------------------------------------------------");
+                                Console.WriteLine("01. Print All Log Transactions");
+                                Console.WriteLine("02. Print All Log Transactions for an accountId");
+                                Console.WriteLine("03. Print All Log Transactions for a Transaction Type");
+                                Console.WriteLine("04. Print Total No Of Accounts");
+                                Console.WriteLine("05. Display No Of Accounts Type Wise");
+                                Console.WriteLine("06. Display Total Worth Of Bank");
+                                Console.WriteLine("07. Display Policy Informations");
+                                Console.WriteLine("08. Print All Transfers");
+                                Console.WriteLine("09. Print All WithDrawals");
+                                Console.WriteLine("10. Print All Deposits");
+                                Console.WriteLine("11. Print All Transactions For Today");
+                                Console.WriteLine("12. Back to Main Menu");
+                                Console.WriteLine("----------------------------------------------------------------------------------");
+                                Console.Write("Enter your choice: ");
+                                string resGenChoice = Console.ReadLine();
+                                switch (resGenChoice)
+                                {
+                                    case "1":
+                                        ResultGenerator.PrintAllLogTransactions();
+                                        break;
+                                    case "2":
+                                        Console.WriteLine("Enter Account No:");
+                                        string accountId = Console.ReadLine().ToUpper();
+                                        ResultGenerator.PrintAllLogTransactions(accountId);
+                                        break;
+                                    case "3":
+                                        Console.WriteLine("Choose a Transaction Type:\n1.Deposit\n2.Withdraw\n3.Transfer\n4.External Transfer");
+                                        Console.WriteLine("Enter Your Choice:");
+                                        string transType = Console.ReadLine();
+                                        switch(transType)
+                                        {
+                                            case "1":
+                                                ResultGenerator.PrintAllLogTransactions(TransactionTypes.DEPOSIT);
+                                                break;
+                                            case "2":
+                                                ResultGenerator.PrintAllLogTransactions(TransactionTypes.WITHDRAW);
+                                                break;
+                                            case "3":
+                                                ResultGenerator.PrintAllLogTransactions(TransactionTypes.TRANSFER);
+                                                break;
+                                            case "4":
+                                                ResultGenerator.PrintAllLogTransactions(TransactionTypes.EXTERNALTRANSFER);
+                                                break;
+                                            default:
+                                                Console.WriteLine("Invalid Choice");
+                                                break;
+                                        }
+                                        break;
+                                    case "4":
+                                        int totalAcc = ResultGenerator.GetTotalNoOfAccounts();
+                                        Console.WriteLine($"\nTotal No of Accounts opened till now : {totalAcc}");
+                                        break;
+                                    case "5":
+                                        ResultGenerator.DisplayNoOfAccTypeWise();
+                                        break;
+                                    case "6":
+                                        ResultGenerator.DispTotalWorthOfBank();
+                                        break;
+                                    case "7":
+                                        ResultGenerator.DispPolicyInfo();
+                                        break;
+                                    case "8":
+                                        ResultGenerator.PrintAllTransfers();
+                                        break;
+                                    case "9":
+                                        ResultGenerator.PrintAllWithdrawals();
+                                        break;
+                                    case "10":
+                                        ResultGenerator.PrintAllDeposits();
+                                        break;
+                                    case "11":
+                                        ResultGenerator.PrintAllTransactionsForToday();
+                                        break;
+                                    case "12":
+                                        exit=true;
+                                        break;
+                                    default:
+                                        Console.WriteLine("----------------------------------------------------------------------------------");
+                                        Console.WriteLine("Invalid choice. Please try again.");
+                                        Console.WriteLine("----------------------------------------------------------------------------------");
+                                        break;
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine("----------------------------------------------------------------------------------");
+                            Console.WriteLine($"Error: {ex.Message}");
+                            Console.WriteLine("----------------------------------------------------------------------------------");
+                            logger.Error(ex, "Error during Generating Result");
+                        }
+                        break;
+
+                    case "7":
                         Console.WriteLine("----------------------------------------------------------------------------------");
                         Console.WriteLine("Exiting application.");
                         Console.WriteLine("----------------------------------------------------------------------------------");
@@ -206,9 +311,9 @@ namespace ConsoleApp5
                         Console.WriteLine("Invalid choice. Please try again.");
                         Console.WriteLine("----------------------------------------------------------------------------------");
                         break;
+
                 }
             }
         }
     }
-
 }

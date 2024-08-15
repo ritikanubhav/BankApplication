@@ -46,7 +46,7 @@ namespace BankApplication.BusinessLayer
             foreach (var key in properties.Keys)
             {
                 var className = properties[key];
-                var type = Type.GetType(className);
+                var type = Type.GetType($"BankApplication.BusinessLayer.{className}");
                 if (type != null)
                 {
                     var service = (IExternalBankService)Activator.CreateInstance(type);
@@ -57,6 +57,7 @@ namespace BankApplication.BusinessLayer
 
         public IExternalBankService GetService(string bankCode)
         {
+            Console.WriteLine(bankCode);
             if (_serviceBankPool.TryGetValue(bankCode, out var service))
             {
                 return service;

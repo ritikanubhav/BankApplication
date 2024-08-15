@@ -47,6 +47,10 @@
                 throw new InvalidPolicyTypeException();
             }
         }
+        public Dictionary<string, IPolicy> GetPolicyInfo()
+        {
+            return policies; 
+        }
     }
 }
 

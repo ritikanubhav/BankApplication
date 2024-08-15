@@ -4,12 +4,15 @@ namespace BankApplication.Common
     public class Transaction
     {
         public int TransID { get; set; }
-        public IAccount FromAccount { get; set; }
+        public string FromAccount { get; set; }
         public DateTime TranDate { get; set; }
         public double Amount { get; set; }
         public TransactionStatus Status { get; set; }
 
-        public Transaction(IAccount fromAccount, double amount)
+        public Transaction() {
+            Status = TransactionStatus.CLOSE;
+        }
+        public Transaction(string fromAccount, double amount)
         {
             TransID = IDGenerator.GenerateID();
             FromAccount = fromAccount;

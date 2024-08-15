@@ -78,13 +78,13 @@ namespace BankApplication.BusinessLayer
             toAccount.Balance += amount;
 
             //Updating account balance to accounts table in our database
-            if(accountRepo.Update(toAccount.AccNo, toAccount.Balance))
+            if(accountRepo.Update(toAccount))
             {
                 //logging transaction
-                TransactionLog.LogTransaction(toAccount.AccNo, TransactionTypes.DEPOSIT, new Transaction(toAccount, amount));
+                TransactionLog.LogTransaction(toAccount.AccNo, TransactionTypes.DEPOSIT, new Transaction(toAccount.AccNo, amount));
 
                 //inserting Transaction in database
-                transRepo.InsertTransaction(new Transaction(toAccount, amount),TransactionTypes.DEPOSIT);
+                transRepo.InsertTransaction(new Transaction(toAccount.AccNo, amount),TransactionTypes.DEPOSIT);
                 return true;
             }
             return false;
@@ -127,13 +127,13 @@ namespace BankApplication.BusinessLayer
             fromAccount.Balance -= amount;
 
             //Updating account balance data to accounts table in our database
-            if (accountRepo.Update(fromAccount.AccNo, fromAccount.Balance))
+            if (accountRepo.Update(fromAccount))
             {
                 //logging transaction
-                TransactionLog.LogTransaction(fromAccount.AccNo, TransactionTypes.WITHDRAW, new Transaction(fromAccount, amount));
+                TransactionLog.LogTransaction(fromAccount.AccNo, TransactionTypes.WITHDRAW, new Transaction(fromAccount.AccNo, amount));
 
                 //inserting Transaction to the database
-                transRepo.InsertTransaction(new Transaction(fromAccount, amount), TransactionTypes.WITHDRAW);
+                transRepo.InsertTransaction(new Transaction(fromAccount.AccNo, amount), TransactionTypes.WITHDRAW);
                 return true;
             }
             return false;
@@ -198,8 +198,8 @@ namespace BankApplication.BusinessLayer
                 //logging Transactions
                 int transactionID = IDGenerator.GenerateID();
 
-                Transaction withdrawTransaction = new Transaction(transfer.FromAccount, transfer.Amount);
-                Transaction depositTransaction = new Transaction(transfer.ToAccount, transfer.Amount);
+                Transaction withdrawTransaction = new Transaction(transfer.FromAccount.AccNo, transfer.Amount);
+                Transaction depositTransaction = new Transaction(transfer.ToAccount.AccNo, transfer.Amount);
 
                 TransactionLog.LogTransaction(transfer.FromAccount.AccNo, TransactionTypes.WITHDRAW, withdrawTransaction);
                 TransactionLog.LogTransaction(transfer.ToAccount.AccNo, TransactionTypes.DEPOSIT, depositTransaction);
@@ -213,35 +213,56 @@ namespace BankApplication.BusinessLayer
 
         public bool ExternalTransferFunds(ExternalTransfer externalTransfer)
         {
-            if (!externalTransfer.FromAccount.Active)
+            //getting fromAccount object from database and validating first
+            IAccount fromAccount = accountRepo.GetAccountByAccNo(externalTransfer.FromAccount);
+
+            if (fromAccount == null)
+                throw new AccountDoesNotExistException($"No such Account exist with account No:{externalTransfer.FromAccount}");
+
+            if (!fromAccount.Active)
                 throw new InactiveAccountException("Inactive account");
 
-            if (externalTransfer.FromAccount.Pin != externalTransfer.FromAccPin)
+            if (fromAccount.Pin != externalTransfer.FromAccPin)
                 throw new InvalidPinException("Invalid Pin");
 
-            if (externalTransfer.FromAccount.Balance < externalTransfer.Amount)
+            if (fromAccount.Balance < externalTransfer.Amount)
                 throw new InsufficientBalanceException("Insufficient Balnace");
 
-            if (externalTransfer.FromAccount.Balance - externalTransfer.Amount < externalTransfer.FromAccount.Policy.GetMinBalance())
+            if (fromAccount.Balance - externalTransfer.Amount < fromAccount.Policy.GetMinBalance())
                 throw new MinBalanceNeedsToBeMaintainedException("Minimum balance needs to be maintained.");
 
             // Check if the transaction is within permissible daily limits
-            double dailyLimit = AccountPrivilegeManager.GetDailyLimit(externalTransfer.FromAccount.PrivilegeType);
-            double totalTransferredAmountToday = TransactionLog.GetTotalTransferredAmountToday(externalTransfer.FromAccount.AccNo);
+            double dailyLimit = AccountPrivilegeManager.GetDailyLimit(fromAccount.PrivilegeType);
+            double totalTransferredAmountToday = TransactionLog.GetTotalTransferredAmountToday(fromAccount.AccNo);
 
             if (totalTransferredAmountToday + externalTransfer.Amount > dailyLimit)
                 throw new DailyLimitExceededException();
+            
+            //updating the balance of transferrer
+             fromAccount.Balance -= externalTransfer.Amount;
 
-            externalTransfer.FromAccount.Balance -= externalTransfer.Amount;
+            //Updating account  balance data in accounts table in our database after transfer
+            if (accountRepo.Update(fromAccount))
+            {
+                // Assuming success in external transfer, log transaction and update status
+                TransactionLog.LogTransaction(fromAccount.AccNo, TransactionTypes.EXTERNALTRANSFER, externalTransfer);
+                externalTransfer.Status = TransactionStatus.OPEN;
 
-            // Assuming success in external transfer, log transaction and update status
-            TransactionLog.LogTransaction(externalTransfer.FromAccount.AccNo, TransactionTypes.EXTERNALTRANSFER, externalTransfer);
-            externalTransfer.Status = TransactionStatus.OPEN;
+                //Deposit the amount to external bank---
+                //step 1.create an instance of externalservicefactory to use getservice method
+                ExternalBankServiceFactory externalBankServiceFactory=ExternalBankServiceFactory.Instance;
 
-            //Updating account  balance data to accounts table in our database after transfer
-            accountRepo.Update(externalTransfer.FromAccount.AccNo, externalTransfer.FromAccount.Balance);
+                //step 2. generate bankserice of the extenal bank using bankcode
+                IExternalBankService externalBankService =externalBankServiceFactory.GetService(externalTransfer.ToExternalAccount.BankCode);
 
-            return true;
+                //step 3.call the deposit function of the extenalbank
+                externalBankService.deposit(externalTransfer.ToExternalAccount.AccNo,externalTransfer.Amount);
+
+                //Inserting Transaction into transaction table in database
+                transRepo.InsertTransaction(externalTransfer, TransactionTypes.EXTERNALTRANSFER);
+                return true;
+            }
+            return false;
         }
     }
 
